@@ -4,6 +4,23 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+struct BlockInfo
+{
+    const char* name;
+    int health;
+};
+
+constexpr static BlockInfo blockInfo[BLOCK_COUNT]
+{
+    // .name  .health
+    { "air",   0 },
+    { "dirt",  2 },
+    { "grass", 2 },
+    { "stone", 3 },
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 void world_update_light(World& world)
 {
     return;
@@ -37,13 +54,19 @@ void world_update_light(World& world)
     EndTextureMode();
 }
 
+void world_set_block(World& world, int x, int y, Block block)
+{
+    world.blocks[x][y] = block;
+    world.blockHealth[x][y] = blockInfo[block].health;
+}
+
 void world_generate(World& world)
 {
     for (int y = 0; y < WORLD_HEIGHT; y++)
     {
         for (int x = 0; x < WORLD_WIDTH; x++)
         {
-            world.blocks[x][y] = BLOCK_AIR;
+            world_set_block(world, x, y, BLOCK_AIR);
         }
     }
 
@@ -59,15 +82,15 @@ void world_generate(World& world)
 
         for (int y = height; y < WORLD_HEIGHT; y++)
         {
-            world.blocks[x][y] = BLOCK_STONE;
+            world_set_block(world, x, y, BLOCK_STONE);
         }
 
         int y;
         for (y = (height + dirtHeight); y >= height; y--)
         {
-            world.blocks[x][y] = BLOCK_DIRT;
+            world_set_block(world, x, y, BLOCK_DIRT);
         }
-        world.blocks[x][y] = BLOCK_GRASS;
+        world_set_block(world, x, y, BLOCK_GRASS);
 
         // TODO: make actual spawn placement logic
         if (x == (int)(WORLD_WIDTH / 2))
@@ -158,9 +181,10 @@ void world_draw(World& world)
             };
             DrawTexturePro(world.atlas, source, dest, { 0, 0 }, 0.0f, WHITE);
 
-            if (x == world.spawn.x && y == world.spawn.y)
+            if (world.blockHealth[x][y] != blockInfo[block].health)
             {
-                DrawRectangleRec(dest, GREEN);
+                source = { 0, 0, 8, 8 };
+                DrawTexturePro(world.blockBreakTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
             }
         }
     }

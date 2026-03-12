@@ -12,6 +12,7 @@ int main()
     Texture atlas = LoadTexture("assets/atlas.png");
     Texture lightTexture = LoadTexture("assets/light.png");
     Texture playerTexture = LoadTexture("assets/player.png");
+    Texture blockBreakTexture = LoadTexture("assets/block_break.png");
 
     Player player = {
         .accel = 9.0f,
@@ -21,6 +22,7 @@ int main()
         .jumpForce = 465.0f,
         .jumpBuffer = 0.2f,
         .coyoteBuffer = 0.1f,
+        .mineSpeed = 0.25f,
         .texture = playerTexture,
     };
 
@@ -35,6 +37,7 @@ int main()
         .camera = camera,
         .atlas = atlas,
         .lightTexture = lightTexture,
+        .blockBreakTexture = blockBreakTexture,
     };
     world.blockMap = LoadRenderTexture(
         WORLD_WIDTH * TILE_SIZE,
@@ -64,7 +67,8 @@ int main()
             player_reset(player);
         }
 
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        // TODO: move this
+        if (player.mineTimer <= 0.0f && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
         {
             Vector2 mousePos = GetMousePosition();
             mousePos = GetScreenToWorld2D(mousePos, camera);
@@ -73,8 +77,15 @@ int main()
 
             if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT)
             {
-                world.blocks[x][y] = BLOCK_AIR;
-                world_update_light(world);
+                world.blockHealth[x][y]--;
+
+                if (world.blockHealth[x][y] <= 0)
+                {
+                    world_set_block(world, x, y, BLOCK_AIR);
+                    world_update_light(world);
+                }
+
+                player.mineTimer = player.mineSpeed;
             }
         }
 

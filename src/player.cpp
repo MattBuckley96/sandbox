@@ -7,9 +7,11 @@
 
 Rectangle player_hitbox(Player& player)
 {
+    const float scale = (TILE_SIZE / 8);
+
     const Vector2 size = {
-        (float)player.texture.width * 4,
-        (float)player.texture.height * 4
+        (float)player.texture.width * scale,
+        (float)player.texture.height * scale
     };
     Rectangle hitbox = {
         player.pos.x - (size.x / 2),
@@ -31,6 +33,11 @@ void player_update(Player& player, World& world, float dt)
     if (player.jumpBufferTimer > 0.0f)
     {
         player.jumpBufferTimer -= dt;
+    }
+
+    if (player.mineTimer > 0.0f)
+    {
+        player.mineTimer -= dt;
     }
 
     // x

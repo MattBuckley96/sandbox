@@ -23,6 +23,8 @@ struct Player
     float jumpHoldTimePrev;
     float coyoteTimer;
     float coyoteBuffer;
+    float mineTimer;
+    float mineSpeed;
 
     bool flipY;
 
