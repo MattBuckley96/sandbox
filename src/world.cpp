@@ -4,23 +4,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-struct BlockInfo
-{
-    const char* name;
-    int health;
-};
-
-constexpr static BlockInfo blockInfo[BLOCK_COUNT]
-{
-    // .name  .health
-    { "air",   0 },
-    { "dirt",  2 },
-    { "grass", 2 },
-    { "stone", 3 },
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
 void world_update_light(World& world)
 {
     return;

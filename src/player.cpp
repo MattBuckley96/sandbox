@@ -197,4 +197,123 @@ void player_reset(Player& player)
     player.coyoteTimer = 0.0f;
     player.jumpBufferTimer = 0.0f;
     player.jumpHoldTimer = 0.0f;
+    player.inventory = {};
+}
+
+void inventory_add(Inventory& inventory, ItemStack& stack)
+{
+    int slotIdx = -1;
+
+    // check for existing
+    for (int i = 0; i < INVENTORY_SIZE; i++)
+    {
+        ItemStack slot = inventory.slots[i];
+
+        if (slot.item == stack.item)
+        {
+            slotIdx = i;
+            break;
+        }
+    }
+
+    // check for free
+    if (slotIdx == -1)
+    {
+        for (int i = 0; i < INVENTORY_SIZE; i++)
+        {
+            ItemStack& slot = inventory.slots[i];
+
+            if (slot.item == ITEM_NONE)
+            {
+                slot.item = stack.item;
+                slotIdx = i;
+                break;
+            }
+        }
+    }
+
+    if (slotIdx == -1)
+    {
+        return;
+    }
+
+    ItemStack& slot = inventory.slots[slotIdx];
+    slot.count += stack.count;
+
+    if (slot.count > MAX_STACK)
+    {
+        slot.count = MAX_STACK;
+    }
+}
+
+void inventory_draw(Inventory& inventory)
+{
+    const float slotSize = TILE_SIZE * 1.5f;
+
+    for (int i = 0; i < INVENTORY_SIZE; i++)
+    {
+        Rectangle slotRect = {
+            10 + (i * slotSize),
+            10,
+            slotSize,
+            slotSize
+        };
+        DrawRectangleRec(slotRect, Fade(BLACK, 0.5f));
+        DrawRectangleLinesEx(slotRect, 2.0f, WHITE);
+
+        ItemStack slot = inventory.slots[i];
+        if (slot.item == ITEM_NONE)
+        {
+            continue;
+        }
+
+        Rectangle itemRect = {
+            slotRect.x + (slotSize / 4),
+            slotRect.y + (slotSize / 4),
+            (slotSize / 2),
+            (slotSize / 2)
+        };
+
+        Color color;
+        switch (slot.item)
+        {
+            case ITEM_DIRT_BLOCK:
+            {
+                color = BROWN;
+                break;
+            }
+
+            case ITEM_GRASS_BLOCK:
+            {
+                color = GREEN;
+                break;
+            }
+
+            case ITEM_STONE_BLOCK:
+            {
+                color = GRAY;
+                break;
+            }
+
+            default:
+            {
+                continue;
+            }
+        }
+
+        DrawRectangleRec(itemRect, color);
+
+        if (slot.count == 0)
+        {
+            continue;
+        }
+
+        int fontSize = 18;
+        const char* text = TextFormat("%i", slot.count);
+        int textWidth = MeasureText(text, fontSize);
+
+        int textX = (slotRect.x + (slotRect.width / 2)) - (textWidth / 2);
+        int textY = (slotRect.y + slotRect.height) - (fontSize);
+        DrawText(text, textX, textY, fontSize, WHITE);
+    }
 }

@@ -1,3 +1,5 @@
+#include <cstdio>
+
 #include "config.hpp"
 #include "world.hpp"
 #include "player.hpp"
@@ -77,15 +79,26 @@ int main()
 
             if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT)
             {
-                world.blockHealth[x][y]--;
+                Block block = world.blocks[x][y];
 
-                if (world.blockHealth[x][y] <= 0)
+                if (block != BLOCK_AIR)
                 {
-                    world_set_block(world, x, y, BLOCK_AIR);
-                    world_update_light(world);
-                }
+                    world.blockHealth[x][y]--;
 
-                player.mineTimer = player.mineSpeed;
+                    if (world.blockHealth[x][y] <= 0)
+                    {
+                        world_set_block(world, x, y, BLOCK_AIR);
+                        world_update_light(world);
+
+                        ItemStack stack = {
+                            .item = blockInfo[block].drop,
+                            .count = 1,
+                        };
+                        inventory_add(player.inventory, stack);
+                    }
+
+                    player.mineTimer = player.mineSpeed;
+                }
             }
         }
 
@@ -99,7 +112,8 @@ int main()
 
         EndMode2D();
 
-        DrawText(TextFormat("FPS: %i", GetFPS()), 10, 10, 20, WHITE);
+        inventory_draw(player.inventory);
+        DrawText(TextFormat("FPS: %i", GetFPS()), 10, SCREEN_HEIGHT - 30, 20, WHITE);
 
         EndDrawing();
     }
