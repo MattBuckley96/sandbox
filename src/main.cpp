@@ -32,6 +32,7 @@ struct World
     Block blocks[WORLD_WIDTH][WORLD_HEIGHT];
     RenderTexture blockMap;
     RenderTexture lightMap;
+    Vector2 spawn;
 
     // TODO: move these?
     Camera2D& camera;
@@ -57,6 +58,8 @@ struct Player
     float coyoteBuffer;
 
     bool flipY;
+
+    Vector2 spawnPos;
 
     // TODO: move this
     Texture& texture;
@@ -128,6 +131,12 @@ void world_generate(World& world)
             world.blocks[x][y] = BLOCK_DIRT;
         }
         world.blocks[x][y] = BLOCK_GRASS;
+
+        // TODO: make actual spawn placement logic
+        if (x == (int)(WORLD_WIDTH / 2))
+        {
+            world.spawn = { (float)x, (float)y - 1 };
+        }
     }
 
     world_update_light(world);
@@ -211,6 +220,11 @@ void world_draw(World& world)
                 TILE_SIZE
             };
             DrawTexturePro(world.atlas, source, dest, { 0, 0 }, 0.0f, WHITE);
+
+            if (x == world.spawn.x && y == world.spawn.y)
+            {
+                DrawRectangleRec(dest, GREEN);
+            }
         }
     }
 
@@ -430,8 +444,8 @@ void player_draw(Player& player)
 
 void player_reset(Player& player)
 {
-    player.pos.x = (WORLD_WIDTH / 2) * TILE_SIZE;
-    player.pos.y = (WORLD_HEIGHT * 0.4) * TILE_SIZE;
+    player.pos = player.spawnPos;
+    player.vel = {};
     player.coyoteTimer = 0.0f;
     player.jumpBufferTimer = 0.0f;
     player.jumpHoldTimer = 0.0f;
@@ -451,14 +465,13 @@ int main()
     Player player = {
         .accel = 9.0f,
         .friction = 10.0f,
-        .maxSpeed = 350.0f,
+        .maxSpeed = 300.0f,
         .gravity = 860.0f,
         .jumpForce = 465.0f,
         .jumpBuffer = 0.2f,
         .coyoteBuffer = 0.1f,
         .texture = playerTexture,
     };
-    player_reset(player);
 
     Camera2D camera = {
         .offset = screenCenter,
@@ -478,6 +491,9 @@ int main()
     );
     world_generate(world);
 
+    player.spawnPos = Vector2Scale(world.spawn, TILE_SIZE);
+    player_reset(player);
+
     while (!WindowShouldClose())
     {
         float dt = GetFrameTime();
@@ -492,6 +508,8 @@ int main()
         if (IsKeyPressed(KEY_R))
         {
             world_generate(world);
+
+            player.spawnPos = Vector2Scale(world.spawn, TILE_SIZE);
             player_reset(player);
         }
 
