@@ -73,12 +73,13 @@ struct World
 
     // TODO: move these
     Camera2D& camera;
-    Texture& atlas;
     Texture& lightTexture;
     Texture& blockBreakTexture;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+void block_draw(Block block, Rectangle dest);
 
 void world_update_light(World& world);
 void world_set_block(World& world, int x, int y, Block block);

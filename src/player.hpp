@@ -38,9 +38,6 @@ struct Player
     bool flipY;
 
     Inventory inventory;
-
-    // TODO: move this
-    Texture& texture;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

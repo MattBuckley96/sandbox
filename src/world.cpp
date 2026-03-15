@@ -4,6 +4,37 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void block_draw(Block block, Rectangle dest)
+{
+    Rectangle source = {};
+    switch (block)
+    {
+        case BLOCK_DIRT:
+        {
+            source = { 8, 0, 8, 8 };
+            break;
+        }
+
+        case BLOCK_GRASS:
+        {
+            source = { 16, 0, 8, 8 };
+            break;
+        }
+
+        case BLOCK_STONE:
+        {
+            source = { 24, 0, 8, 8 };
+            break;
+        }
+
+        default:
+        {
+            return;
+        }
+    }
+    DrawTexturePro(blockAtlas, source, dest, { 0, 0 }, 0.0f, WHITE);
+}
+
 void world_update_light(World& world)
 {
     return;
@@ -129,44 +160,17 @@ void world_draw(World& world)
                 continue;
             }
 
-            Rectangle source = {};
-            switch (block)
-            {
-                case BLOCK_DIRT:
-                {
-                    source = { 8, 0, 8, 8 };
-                    break;
-                }
-
-                case BLOCK_GRASS:
-                {
-                    source = { 16, 0, 8, 8 };
-                    break;
-                }
-
-                case BLOCK_STONE:
-                {
-                    source = { 24, 0, 8, 8 };
-                    break;
-                }
-
-                default:
-                {
-                    continue;
-                }
-            }
-
             Rectangle dest = {
                 (float)x * TILE_SIZE,
                 (float)y * TILE_SIZE,
                 TILE_SIZE,
                 TILE_SIZE
             };
-            DrawTexturePro(world.atlas, source, dest, { 0, 0 }, 0.0f, WHITE);
+            block_draw(block, dest);
 
             if (world.blockHealth[x][y] != blockInfo[block].health)
             {
-                source = { 0, 0, 8, 8 };
+                Rectangle source = { 0, 0, 8, 8 };
                 DrawTexturePro(world.blockBreakTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
             }
         }

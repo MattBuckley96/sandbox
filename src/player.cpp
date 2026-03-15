@@ -10,8 +10,8 @@ Rectangle player_hitbox(Player& player)
     const float scale = (TILE_SIZE / 8);
 
     const Vector2 size = {
-        (float)player.texture.width * scale,
-        (float)player.texture.height * scale
+        (float)playerTexture.width * scale,
+        (float)playerTexture.height * scale
     };
     Rectangle hitbox = {
         player.pos.x - (size.x / 2),
@@ -177,8 +177,8 @@ void player_draw(Player& player)
     Rectangle source = {
         0,
         0,
-        (float)player.texture.width,
-        (float)player.texture.height
+        (float)playerTexture.width,
+        (float)playerTexture.height
     };
     Rectangle dest = player_hitbox(player);
 
@@ -187,7 +187,7 @@ void player_draw(Player& player)
         source.width = -source.width;
     }
 
-    DrawTexturePro(player.texture, source, dest, { 0, 0 }, 0.0f, WHITE);
+    DrawTexturePro(playerTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
 }
 
 void player_reset(Player& player)
@@ -274,34 +274,8 @@ void inventory_draw(Inventory& inventory)
             (slotSize / 2)
         };
 
-        Color color;
-        switch (slot.item)
-        {
-            case ITEM_DIRT_BLOCK:
-            {
-                color = BROWN;
-                break;
-            }
-
-            case ITEM_GRASS_BLOCK:
-            {
-                color = GREEN;
-                break;
-            }
-
-            case ITEM_STONE_BLOCK:
-            {
-                color = GRAY;
-                break;
-            }
-
-            default:
-            {
-                continue;
-            }
-        }
-
-        DrawRectangleRec(itemRect, color);
+        // TODO: this wont always work
+        block_draw((Block)slot.item, itemRect);
 
         if (slot.count == 0)
         {

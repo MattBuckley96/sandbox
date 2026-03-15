@@ -1,8 +1,13 @@
-#include <cstdio>
-
 #include "config.hpp"
 #include "world.hpp"
 #include "player.hpp"
+
+////////////////////////////////////////////////////////////////////////////////
+
+Texture blockAtlas; 
+Texture lightTexture; 
+Texture playerTexture; 
+Texture blockBreakTexture; 
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -11,10 +16,10 @@ int main()
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "sandbox");
 
-    Texture atlas = LoadTexture("assets/atlas.png");
-    Texture lightTexture = LoadTexture("assets/light.png");
-    Texture playerTexture = LoadTexture("assets/player.png");
-    Texture blockBreakTexture = LoadTexture("assets/block_break.png");
+    blockAtlas = LoadTexture("assets/atlas.png");
+    lightTexture = LoadTexture("assets/light.png");
+    playerTexture = LoadTexture("assets/player.png");
+    blockBreakTexture = LoadTexture("assets/block_break.png");
 
     Player player = {
         .accel = 9.0f,
@@ -25,7 +30,6 @@ int main()
         .jumpBuffer = 0.2f,
         .coyoteBuffer = 0.1f,
         .mineSpeed = 0.25f,
-        .texture = playerTexture,
     };
 
     Camera2D camera = {
@@ -34,10 +38,10 @@ int main()
         .zoom = 1.0f,
     };
 
+    // TODO: put the world on the heap, its way to damn big
     World world = {
         .lightMap = LoadRenderTexture(WORLD_WIDTH, WORLD_HEIGHT),
         .camera = camera,
-        .atlas = atlas,
         .lightTexture = lightTexture,
         .blockBreakTexture = blockBreakTexture,
     };
