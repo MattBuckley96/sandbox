@@ -13,6 +13,7 @@
 struct Inventory
 {
     ItemStack slots[INVENTORY_SIZE];
+    int selectedIdx;
 };
 
 struct Player
@@ -34,6 +35,8 @@ struct Player
     float coyoteBuffer;
     float mineTimer;
     float mineSpeed;
+    float placeTimer;
+    float placeSpeed;
 
     bool flipY;
 

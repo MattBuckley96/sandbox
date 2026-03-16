@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cmath>
 #include <algorithm>
 
@@ -38,6 +39,11 @@ void player_update(Player& player, World& world, float dt)
     if (player.mineTimer > 0.0f)
     {
         player.mineTimer -= dt;
+    }
+
+    if (player.placeTimer > 0.0f)
+    {
+        player.placeTimer -= dt;
     }
 
     // x
@@ -170,6 +176,81 @@ void player_update(Player& player, World& world, float dt)
     {
         player.coyoteTimer = player.coyoteBuffer;
     }
+
+    // inventory
+    if (!IsKeyDown(KEY_LEFT_CONTROL)) // stops conflict with cam zoom
+    {
+        player.inventory.selectedIdx -= (int)GetMouseWheelMove();
+        player.inventory.selectedIdx = Wrap(player.inventory.selectedIdx, 0, INVENTORY_SIZE);
+    }
+
+    // NOTE: if raylib changes enum values, im fucked
+    int key = GetKeyPressed();
+    if (key >= KEY_ZERO && key <= KEY_NINE)
+    {
+        // weird math so i can have 0 be 10
+        player.inventory.selectedIdx = Wrap((key + 1), 0, 10);
+    }
+
+    // items
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+    {
+        ItemStack& slot = player.inventory.slots[player.inventory.selectedIdx];
+
+        Vector2 mousePos = GetMousePosition();
+        mousePos = GetScreenToWorld2D(mousePos, world.camera);
+        int x = (int)(mousePos.x / TILE_SIZE);
+        int y = (int)(mousePos.y / TILE_SIZE);
+
+        if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT)
+        {
+            Block block = world.blocks[x][y];
+
+            switch (itemInfo[slot.item].type)
+            {
+                case ITEM_TYPE_BLOCK:
+                {
+                    if (player.placeTimer <= 0.0f && slot.count > 0 && block == BLOCK_AIR)
+                    {
+                        // TODO: weird block conversion that will bite me in my ass
+                        world_set_block(world, x, y, (Block)slot.item);
+                        slot.count--;
+
+                        if (slot.count == 0)
+                        {
+                            slot.item = ITEM_NONE;
+                        }
+
+                        player.placeTimer = player.placeSpeed;
+                    }
+                    break;
+                }
+
+                case ITEM_TYPE_TOOL:
+                {
+                    if (player.mineTimer <= 0.0f && block != BLOCK_AIR)
+                    {
+                        world.blockHealth[x][y]--;
+
+                        if (world.blockHealth[x][y] <= 0)
+                        {
+                            world_set_block(world, x, y, BLOCK_AIR);
+                            world_update_light(world);
+
+                            ItemStack stack = {
+                                .item = blockInfo[block].drop,
+                                .count = 1,
+                            };
+                            inventory_add(player.inventory, stack);
+                        }
+
+                        player.mineTimer = player.mineSpeed;
+                    }
+
+                }
+            }
+        }
+    }
 }
 
 void player_draw(Player& player)
@@ -197,7 +278,13 @@ void player_reset(Player& player)
     player.coyoteTimer = 0.0f;
     player.jumpBufferTimer = 0.0f;
     player.jumpHoldTimer = 0.0f;
+
     player.inventory = {};
+    ItemStack pick = {
+        .item = ITEM_PICKAXE,
+        .count = 1,
+    };
+    inventory_add(player.inventory, pick);
 }
 
 void inventory_add(Inventory& inventory, ItemStack& stack)
@@ -259,7 +346,13 @@ void inventory_draw(Inventory& inventory)
             slotSize
         };
         DrawRectangleRec(slotRect, Fade(BLACK, 0.5f));
-        DrawRectangleLinesEx(slotRect, 2.0f, WHITE);
+
+        float lineThick = 2.0f;
+        if (i == inventory.selectedIdx)
+        {
+            lineThick = 6.0f;
+        }
+        DrawRectangleLinesEx(slotRect, lineThick, WHITE);
 
         ItemStack slot = inventory.slots[i];
         if (slot.item == ITEM_NONE)
@@ -273,11 +366,10 @@ void inventory_draw(Inventory& inventory)
             (slotSize / 2),
             (slotSize / 2)
         };
+        item_draw(slot.item, itemRect);
 
-        // TODO: this wont always work
-        block_draw((Block)slot.item, itemRect);
-
-        if (slot.count == 0)
+        // TODO: scale this better
+        if (slot.count == 0 || (slot.item == ITEM_PICKAXE))
         {
             continue;
         }

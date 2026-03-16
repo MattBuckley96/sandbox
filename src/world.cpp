@@ -35,6 +35,38 @@ void block_draw(Block block, Rectangle dest)
     DrawTexturePro(blockAtlas, source, dest, { 0, 0 }, 0.0f, WHITE);
 }
 
+void item_draw(Item item, Rectangle dest)
+{
+    Rectangle source = {};
+    switch (itemInfo[item].type)
+    {
+        case ITEM_TYPE_BLOCK:
+        {
+            block_draw((Block)item, dest);
+            return;
+        }
+
+        default:
+        {
+            switch (item)
+            {
+                case ITEM_PICKAXE:
+                {
+                    source = { 16, 0, 16, 16 };
+                    break;
+                }
+
+                default:
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    DrawTexturePro(itemAtlas, source, dest, { 0, 0 }, 0.0f, WHITE);
+}
+
 void world_update_light(World& world)
 {
     return;

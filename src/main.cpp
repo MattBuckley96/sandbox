@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 Texture blockAtlas; 
+Texture itemAtlas;
 Texture lightTexture; 
 Texture playerTexture; 
 Texture blockBreakTexture; 
@@ -16,7 +17,8 @@ int main()
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "sandbox");
 
-    blockAtlas = LoadTexture("assets/atlas.png");
+    blockAtlas = LoadTexture("assets/block_atlas.png");
+    itemAtlas = LoadTexture("assets/item_atlas.png");
     lightTexture = LoadTexture("assets/light.png");
     playerTexture = LoadTexture("assets/player.png");
     blockBreakTexture = LoadTexture("assets/block_break.png");
@@ -30,6 +32,7 @@ int main()
         .jumpBuffer = 0.2f,
         .coyoteBuffer = 0.1f,
         .mineSpeed = 0.25f,
+        .placeSpeed = 0.25f,
     };
 
     Camera2D camera = {
@@ -62,8 +65,11 @@ int main()
 
         const float sensitivity = 0.05f;
         camera.target = player.pos;
-        camera.zoom += GetMouseWheelMove() * sensitivity;
-        camera.zoom = Clamp(camera.zoom, sensitivity, 1.0f);
+        if (IsKeyDown(KEY_LEFT_CONTROL))
+        {
+            camera.zoom += GetMouseWheelMove() * sensitivity;
+            camera.zoom = Clamp(camera.zoom, sensitivity, 1.0f);
+        }
 
         if (IsKeyPressed(KEY_R))
         {
@@ -71,39 +77,6 @@ int main()
 
             player.spawnPos = Vector2Scale(world.spawn, TILE_SIZE);
             player_reset(player);
-        }
-
-        // TODO: move this
-        if (player.mineTimer <= 0.0f && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
-        {
-            Vector2 mousePos = GetMousePosition();
-            mousePos = GetScreenToWorld2D(mousePos, camera);
-            int x = (int)(mousePos.x / TILE_SIZE);
-            int y = (int)(mousePos.y / TILE_SIZE);
-
-            if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT)
-            {
-                Block block = world.blocks[x][y];
-
-                if (block != BLOCK_AIR)
-                {
-                    world.blockHealth[x][y]--;
-
-                    if (world.blockHealth[x][y] <= 0)
-                    {
-                        world_set_block(world, x, y, BLOCK_AIR);
-                        world_update_light(world);
-
-                        ItemStack stack = {
-                            .item = blockInfo[block].drop,
-                            .count = 1,
-                        };
-                        inventory_add(player.inventory, stack);
-                    }
-
-                    player.mineTimer = player.mineSpeed;
-                }
-            }
         }
 
         BeginDrawing();
