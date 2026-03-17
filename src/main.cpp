@@ -6,9 +6,9 @@
 
 Texture blockAtlas; 
 Texture itemAtlas;
-Texture lightTexture; 
 Texture playerTexture; 
 Texture blockBreakTexture; 
+Texture treeTexture;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -19,9 +19,9 @@ int main()
 
     blockAtlas = LoadTexture("assets/block_atlas.png");
     itemAtlas = LoadTexture("assets/item_atlas.png");
-    lightTexture = LoadTexture("assets/light.png");
     playerTexture = LoadTexture("assets/player.png");
     blockBreakTexture = LoadTexture("assets/block_break.png");
+    treeTexture = LoadTexture("assets/tree.png");
 
     Player player = {
         .accel = 9.0f,
@@ -43,10 +43,7 @@ int main()
 
     // TODO: put the world on the heap, its way to damn big
     World world = {
-        .lightMap = LoadRenderTexture(WORLD_WIDTH, WORLD_HEIGHT),
         .camera = camera,
-        .lightTexture = lightTexture,
-        .blockBreakTexture = blockBreakTexture,
     };
     world.blockMap = LoadRenderTexture(
         WORLD_WIDTH * TILE_SIZE,

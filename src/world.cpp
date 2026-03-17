@@ -27,6 +27,26 @@ void block_draw(Block block, Rectangle dest)
             break;
         }
 
+        case BLOCK_PLANKS:
+        {
+            source = { 32, 0, 8, 8 };
+            break;
+        }
+
+        case BLOCK_LOG:
+        {
+            source = { 24, 10, 8, 8 };
+            DrawTexturePro(treeTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
+            return;
+        }
+
+        case BLOCK_LEAVES:
+        {
+            source = { 0, 0, 23, 18 };
+            DrawTexturePro(treeTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
+            return;
+        }
+
         default:
         {
             return;
@@ -67,39 +87,6 @@ void item_draw(Item item, Rectangle dest)
     DrawTexturePro(itemAtlas, source, dest, { 0, 0 }, 0.0f, WHITE);
 }
 
-void world_update_light(World& world)
-{
-    return;
-
-    /*
-        TODO: this is horribly inefficient...
-        - may want to do some chunk-based thing?
-    */
-    BeginTextureMode(world.lightMap);
-    ClearBackground(BLACK);
-    BeginBlendMode(BLEND_ADDITIVE);
-
-    for (int y = 0; y < WORLD_HEIGHT; y++)
-    {
-        for (int x = 0; x < WORLD_WIDTH; x++)
-        {
-            Block block = world.blocks[x][y];
-
-            if (block == BLOCK_AIR)
-            {
-                Vector2 pos = { (float)x, (float)y };
-                Vector2 offset = { world.lightTexture.width / 2.0f, world.lightTexture.height / 2.0f };
-                pos = Vector2Subtract(pos, offset);
-
-                DrawTextureEx(world.lightTexture, pos, 0.0f, 1.0f, WHITE);
-            }
-        }
-    }
-
-    EndBlendMode();
-    EndTextureMode();
-}
-
 void world_set_block(World& world, int x, int y, Block block)
 {
     world.blocks[x][y] = block;
@@ -118,6 +105,7 @@ void world_generate(World& world)
 
     int height = WORLD_HEIGHT * 0.5f;
     const int dirtHeight = 10;
+    int treeDist = 3;
 
     for (int x = 0; x < WORLD_WIDTH; x++)
     {
@@ -138,14 +126,28 @@ void world_generate(World& world)
         }
         world_set_block(world, x, y, BLOCK_GRASS);
 
+        // trees
+        if (treeDist > 2 && GetRandomValue(1, 15) == 1)
+        {
+            int treeHeight = GetRandomValue(10, 15);
+
+            for (int i = 1; i <= treeHeight; i++)
+            {
+                world_set_block(world, x, y - i, BLOCK_LOG);
+            }
+            world_set_block(world, x, y - treeHeight, BLOCK_LEAVES);
+
+            treeDist = 0;
+        }
+
         // TODO: make actual spawn placement logic
         if (x == (int)(WORLD_WIDTH / 2))
         {
             world.spawn = { (float)x, (float)y - 1 };
         }
-    }
 
-    world_update_light(world);
+        treeDist++;
+    }
 }
 
 void world_draw(World& world)
@@ -198,12 +200,27 @@ void world_draw(World& world)
                 TILE_SIZE,
                 TILE_SIZE
             };
+
+            // my god
+            if (block == BLOCK_LEAVES)
+            {
+                const float scale = (TILE_SIZE / 8);
+                const float width = 23 * scale;
+                const float height = 18 * scale;
+                dest = {
+                    (float)(x * TILE_SIZE) - (width / 2) + (TILE_SIZE / 2) + (scale / 2),
+                    (float)(y * TILE_SIZE) - TILE_SIZE - (scale * 2),
+                    width,
+                    height
+                };
+                DrawCircle(x * TILE_SIZE, y * TILE_SIZE, 2, RED);
+            }
             block_draw(block, dest);
 
             if (world.blockHealth[x][y] != blockInfo[block].health)
             {
                 Rectangle source = { 0, 0, 8, 8 };
-                DrawTexturePro(world.blockBreakTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
+                DrawTexturePro(blockBreakTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
             }
         }
     }
@@ -227,19 +244,4 @@ void world_draw(World& world)
 
     DrawTexturePro(world.blockMap.texture, blockSource, worldDest, 
         { 0, 0 }, 0.0f, WHITE);
-
-    // NOTE: needs negative height to flip
-    Rectangle lightSource = {
-        0,
-        0,
-        (float)world.lightMap.texture.width,
-        (float)-world.lightMap.texture.height,
-    };
-
-    /*
-    BeginBlendMode(BLEND_MULTIPLIED);
-    DrawTexturePro(world.lightMap.texture, lightSource, worldDest, 
-        { 0, 0 }, 0.0f, WHITE);
-    EndBlendMode();
-    */
 }

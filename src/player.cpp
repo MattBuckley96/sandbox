@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <cmath>
 #include <algorithm>
 
@@ -116,7 +115,7 @@ void player_update(Player& player, World& world, float dt)
             }
 
             Block block = world.blocks[x][y];
-            if (block == BLOCK_AIR)
+            if (blockInfo[block].type != BLOCK_TYPE_SOLID)
             {
                 continue;
             }
@@ -228,20 +227,43 @@ void player_update(Player& player, World& world, float dt)
 
                 case ITEM_TYPE_TOOL:
                 {
-                    if (player.mineTimer <= 0.0f && block != BLOCK_AIR)
+                    if (player.mineTimer <= 0.0f)
                     {
+                        if (block == BLOCK_AIR || block == BLOCK_LEAVES)
+                        {
+                            break;
+                        }
+
                         world.blockHealth[x][y]--;
 
                         if (world.blockHealth[x][y] <= 0)
                         {
-                            world_set_block(world, x, y, BLOCK_AIR);
-                            world_update_light(world);
+                            if (block == BLOCK_LOG)
+                            {
+                                while (block != BLOCK_AIR)
+                                {
+                                    world_set_block(world, x, y, BLOCK_AIR);
 
-                            ItemStack stack = {
-                                .item = blockInfo[block].drop,
-                                .count = 1,
-                            };
-                            inventory_add(player.inventory, stack);
+                                    ItemStack stack = {
+                                        .item = blockInfo[block].drop,
+                                        .count = 1,
+                                    };
+                                    inventory_add(player.inventory, stack);
+
+                                    y--;
+                                    block = world.blocks[x][y];
+                                }
+                            }
+                            else
+                            {
+                                world_set_block(world, x, y, BLOCK_AIR);
+
+                                ItemStack stack = {
+                                    .item = blockInfo[block].drop,
+                                    .count = 1,
+                                };
+                                inventory_add(player.inventory, stack);
+                            }
                         }
 
                         player.mineTimer = player.mineSpeed;
@@ -289,6 +311,11 @@ void player_reset(Player& player)
 
 void inventory_add(Inventory& inventory, ItemStack& stack)
 {
+    if (stack.item == ITEM_NONE || stack.count == 0)
+    {
+        return;
+    }
+
     int slotIdx = -1;
 
     // check for existing
@@ -347,6 +374,18 @@ void inventory_draw(Inventory& inventory)
         };
         DrawRectangleRec(slotRect, Fade(BLACK, 0.5f));
 
+        ItemStack slot = inventory.slots[i];
+        if (slot.item != ITEM_NONE)
+        {
+            Rectangle itemRect = {
+                slotRect.x + (slotSize / 4),
+                slotRect.y + (slotSize / 4),
+                (slotSize / 2),
+                (slotSize / 2)
+            };
+            item_draw(slot.item, itemRect);
+        }
+
         float lineThick = 2.0f;
         if (i == inventory.selectedIdx)
         {
@@ -354,22 +393,7 @@ void inventory_draw(Inventory& inventory)
         }
         DrawRectangleLinesEx(slotRect, lineThick, WHITE);
 
-        ItemStack slot = inventory.slots[i];
-        if (slot.item == ITEM_NONE)
-        {
-            continue;
-        }
-
-        Rectangle itemRect = {
-            slotRect.x + (slotSize / 4),
-            slotRect.y + (slotSize / 4),
-            (slotSize / 2),
-            (slotSize / 2)
-        };
-        item_draw(slot.item, itemRect);
-
-        // TODO: scale this better
-        if (slot.count == 0 || (slot.item == ITEM_PICKAXE))
+        if (slot.count <= 1)
         {
             continue;
         }

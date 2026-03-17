@@ -15,8 +15,9 @@ const Vector2 screenCenter = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 #define WORLD_WIDTH 200
 #define WORLD_HEIGHT 100
 
+// TODO: move these
 extern Texture blockAtlas; 
 extern Texture itemAtlas;
-extern Texture lightTexture; 
 extern Texture playerTexture; 
 extern Texture blockBreakTexture; 
+extern Texture treeTexture;
