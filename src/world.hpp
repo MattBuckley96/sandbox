@@ -19,6 +19,7 @@ enum Block
     BLOCK_GRASS,
     BLOCK_STONE,
     BLOCK_PLANKS,
+    BLOCK_COAL_ORE,
 
     // TODO: trees probably should be walls in future
     BLOCK_LOG,
@@ -31,6 +32,7 @@ enum ItemType
 {
     ITEM_TYPE_BLOCK,
     ITEM_TYPE_TOOL,
+    ITEM_TYPE_MATERIAL,
 };
 
 enum Item
@@ -43,10 +45,13 @@ enum Item
     ITEM_STONE_BLOCK,
     ITEM_PLANKS,
 
+    // ores
+    ITEM_COAL,
+
     // tools
     ITEM_PICKAXE,
 
-    ITEM_COUNT,
+    ITEM_COUNT
 };
 
 struct ItemStack
@@ -65,14 +70,15 @@ struct BlockInfo
 
 constexpr static BlockInfo blockInfo[BLOCK_COUNT]
 {
-    // .name  .health       .type           .drop
-    { "air",     0,     BLOCK_TYPE_NOCLIP, ITEM_NONE },
-    { "dirt",    2,     BLOCK_TYPE_SOLID,  ITEM_DIRT_BLOCK },
-    { "grass",   2,     BLOCK_TYPE_SOLID,  ITEM_GRASS_BLOCK },
-    { "stone",   3,     BLOCK_TYPE_SOLID,  ITEM_STONE_BLOCK },
-    { "planks",  3,     BLOCK_TYPE_SOLID,  ITEM_PLANKS },
-    { "log",     8,    BLOCK_TYPE_NOCLIP, ITEM_PLANKS },
-    { "leaves",  0,     BLOCK_TYPE_NOCLIP, ITEM_NONE },
+    // .name   .health       .type           .drop
+    { "air",      0,     BLOCK_TYPE_NOCLIP, ITEM_NONE },
+    { "dirt",     2,     BLOCK_TYPE_SOLID,  ITEM_DIRT_BLOCK },
+    { "grass",    2,     BLOCK_TYPE_SOLID,  ITEM_GRASS_BLOCK },
+    { "stone",    3,     BLOCK_TYPE_SOLID,  ITEM_STONE_BLOCK },
+    { "planks",   3,     BLOCK_TYPE_SOLID,  ITEM_PLANKS },
+    { "coal ore", 8,     BLOCK_TYPE_SOLID,  ITEM_COAL },
+    { "log",      8,     BLOCK_TYPE_NOCLIP, ITEM_PLANKS },
+    { "leaves",   0,     BLOCK_TYPE_NOCLIP, ITEM_NONE },
 };
 
 struct ItemInfo
@@ -89,6 +95,7 @@ constexpr static ItemInfo itemInfo[ITEM_COUNT]
     { "grass block", ITEM_TYPE_BLOCK },
     { "stone block", ITEM_TYPE_BLOCK },
     { "planks",      ITEM_TYPE_BLOCK },
+    { "coal",        ITEM_TYPE_MATERIAL },
     { "pickaxe",     ITEM_TYPE_TOOL },
 };
 

@@ -34,6 +34,12 @@ void block_draw(Block block, Rectangle dest)
             break;
         }
 
+        case BLOCK_COAL_ORE:
+        {
+            source = { 40, 0, 8, 8 };
+            break;
+        }
+
         case BLOCK_LOG:
         {
             source = { 24, 10, 8, 8 };
@@ -77,6 +83,12 @@ void item_draw(Item item, Rectangle dest)
                     break;
                 }
 
+                case ITEM_COAL:
+                {
+                    source = { 32, 0, 8, 8 };
+                    break;
+                }
+
                 default:
                 {
                     return;
@@ -90,6 +102,11 @@ void item_draw(Item item, Rectangle dest)
 
 void world_set_block(World& world, int x, int y, Block block)
 {
+    if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT)
+    {
+        return;
+    }
+
     world.blocks[x][y] = block;
     world.blockHealth[x][y] = blockInfo[block].health;
 }
@@ -118,6 +135,25 @@ void world_generate(World& world)
         for (int y = height; y < WORLD_HEIGHT; y++)
         {
             world_set_block(world, x, y, BLOCK_STONE);
+
+            // coal
+            if (y >= WORLD_HEIGHT * 0.65f)
+            {
+                if (GetRandomValue(1, 30) == 1)
+                {
+                    int oreCount = GetRandomValue(5, 10);
+                    int oreX = x;
+                    int oreY = y;
+
+                    while (oreCount > 0)
+                    {
+                        oreX += GetRandomValue(-1, 1);    
+                        oreY += GetRandomValue(-1, 1);
+                        world_set_block(world, oreX, oreY, BLOCK_COAL_ORE);
+                        oreCount--;
+                    }
+                }
+            }
         }
 
         int y;
