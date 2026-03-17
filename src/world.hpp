@@ -65,14 +65,14 @@ struct BlockInfo
 
 constexpr static BlockInfo blockInfo[BLOCK_COUNT]
 {
-    // .name  .health     .type             .drop
-    { "air",     0,    BLOCK_TYPE_NOCLIP, ITEM_NONE },
-    { "dirt",    2,    BLOCK_TYPE_SOLID,  ITEM_DIRT_BLOCK },
-    { "grass",   2,    BLOCK_TYPE_SOLID,  ITEM_GRASS_BLOCK },
-    { "stone",   3,    BLOCK_TYPE_SOLID,  ITEM_STONE_BLOCK },
-    { "planks",  3,    BLOCK_TYPE_SOLID,  ITEM_PLANKS },
-    { "log",     3,    BLOCK_TYPE_NOCLIP, ITEM_PLANKS },
-    { "leaves",  0,    BLOCK_TYPE_NOCLIP, ITEM_NONE },
+    // .name  .health       .type           .drop
+    { "air",     0,     BLOCK_TYPE_NOCLIP, ITEM_NONE },
+    { "dirt",    2,     BLOCK_TYPE_SOLID,  ITEM_DIRT_BLOCK },
+    { "grass",   2,     BLOCK_TYPE_SOLID,  ITEM_GRASS_BLOCK },
+    { "stone",   3,     BLOCK_TYPE_SOLID,  ITEM_STONE_BLOCK },
+    { "planks",  3,     BLOCK_TYPE_SOLID,  ITEM_PLANKS },
+    { "log",     8,    BLOCK_TYPE_NOCLIP, ITEM_PLANKS },
+    { "leaves",  0,     BLOCK_TYPE_NOCLIP, ITEM_NONE },
 };
 
 struct ItemInfo

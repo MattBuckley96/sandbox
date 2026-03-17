@@ -1,3 +1,4 @@
+#include <cmath>
 #include <algorithm>
 
 #include "world.hpp"
@@ -217,9 +218,13 @@ void world_draw(World& world)
             }
             block_draw(block, dest);
 
-            if (world.blockHealth[x][y] != blockInfo[block].health)
+            int health = world.blockHealth[x][y];
+            int maxHealth = blockInfo[block].health;
+            if (health < maxHealth)
             {
-                Rectangle source = { 0, 0, 8, 8 };
+                const int frameCount = 3;
+                int frame = ((float)(maxHealth - health) / maxHealth) * frameCount;
+                Rectangle source = { (float)frame * 8, 0, 8, 8 };
                 DrawTexturePro(blockBreakTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
             }
         }
