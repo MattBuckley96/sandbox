@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "config.hpp"
 #include "world.hpp"
 #include "player.hpp"
@@ -12,6 +14,52 @@ Texture treeTexture;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#define KiB(x) (x * 1024)
+#define MiB(x) (KiB(x) * 1024)
+#define GiB(x) (MiB(x) * 1024)
+
+struct Arena
+{
+    size_t size;
+    size_t capacity;
+    char* memory;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+void arena_init(Arena& arena, size_t capacity)
+{
+    arena.size = 0;
+    arena.capacity = capacity;
+
+    arena.memory = (char*)malloc(capacity);
+    if (arena.memory)
+    {
+        memset(arena.memory, 0, capacity);
+    }
+}
+
+void arena_free(Arena& arena)
+{
+    free(arena.memory);
+}
+
+void* arena_alloc(Arena& arena, size_t size)
+{
+    void* ptr = nullptr;
+
+    size = (size + 7) & ~7;
+    if ((arena.size + size) <= arena.capacity)
+    {
+        ptr = arena.memory + arena.size;
+        arena.size += size;
+    }
+
+    return ptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     SetTraceLogLevel(LOG_WARNING);
@@ -22,6 +70,9 @@ int main()
     playerTexture = LoadTexture("assets/player.png");
     blockBreakTexture = LoadTexture("assets/block_break.png");
     treeTexture = LoadTexture("assets/tree.png");
+
+    Arena arena = {};
+    arena_init(arena, sizeof(World));
 
     Player player = {
         .accel = 9.0f,
@@ -41,24 +92,32 @@ int main()
         .zoom = 1.0f,
     };
 
-    // TODO: put the world on the heap, its way to damn big
-    World world = {
-        .camera = camera,
-    };
-    world.blockMap = LoadRenderTexture(
+    World* world = (World*)arena_alloc(arena, sizeof(World));
+    if (world == nullptr)
+    {
+        return -1;
+    }
+
+    world->camera = &camera;
+
+    /*
+        TODO: make this smaller somehow idk
+        world is too big, texture no load
+    */
+    world->blockMap = LoadRenderTexture(
         WORLD_WIDTH * TILE_SIZE,
         WORLD_HEIGHT * TILE_SIZE
     );
-    world_generate(world);
+    world_generate(*world);
 
-    player.spawnPos = Vector2Scale(world.spawn, TILE_SIZE);
+    player.spawnPos = Vector2Scale(world->spawn, TILE_SIZE);
     player_reset(player);
 
     while (!WindowShouldClose())
     {
         float dt = GetFrameTime();
         dt = Clamp(dt, 0.0f, 0.1f);
-        player_update(player, world, dt);
+        player_update(player, *world, dt);
 
         const float sensitivity = 0.05f;
         camera.target = player.pos;
@@ -70,9 +129,9 @@ int main()
 
         if (IsKeyPressed(KEY_R))
         {
-            world_generate(world);
+            world_generate(*world);
 
-            player.spawnPos = Vector2Scale(world.spawn, TILE_SIZE);
+            player.spawnPos = Vector2Scale(world->spawn, TILE_SIZE);
             player_reset(player);
         }
 
@@ -81,7 +140,7 @@ int main()
 
         BeginMode2D(camera);
 
-        world_draw(world);
+        world_draw(*world);
         player_draw(player);
 
         EndMode2D();
@@ -91,6 +150,8 @@ int main()
 
         EndDrawing();
     }
+
+    arena_free(arena);
 
     CloseWindow();
     return 0;

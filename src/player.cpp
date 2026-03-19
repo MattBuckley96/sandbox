@@ -203,7 +203,7 @@ void player_update(Player& player, World& world, float dt)
         }
 
         Vector2 mousePos = GetMousePosition();
-        mousePos = GetScreenToWorld2D(mousePos, world.camera);
+        mousePos = GetScreenToWorld2D(mousePos, *world.camera);
         int x = (int)(mousePos.x / TILE_SIZE);
         int y = (int)(mousePos.y / TILE_SIZE);
 

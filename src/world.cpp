@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cmath>
 #include <algorithm>
 
@@ -209,11 +210,13 @@ void world_draw(World& world)
         TODO: raylib has a bug where top-right and bottom-right are
         flipped, update this when raylib fixes
     */
+
+    // TODO: drawing this every frame fucks the FPS
     DrawRectangleGradientEx(skyRect, skyTop, skyBottom, skyBottom, skyTop);
 
     const Vector2 screenBounds = { SCREEN_WIDTH, SCREEN_HEIGHT };
-    Vector2 viewStart = GetScreenToWorld2D({ 0, 0 }, world.camera);
-    Vector2 viewEnd = GetScreenToWorld2D(screenBounds, world.camera);
+    Vector2 viewStart = GetScreenToWorld2D({ 0, 0 }, *world.camera);
+    Vector2 viewEnd = GetScreenToWorld2D(screenBounds, *world.camera);
 
     int xStart = std::max(0, (int)(viewStart.x / TILE_SIZE) - 1);
     int yStart = std::max(0, (int)(viewStart.y / TILE_SIZE) - 1);
@@ -250,7 +253,6 @@ void world_draw(World& world)
                     width,
                     height
                 };
-                DrawCircle(x * TILE_SIZE, y * TILE_SIZE, 2, RED);
             }
             block_draw(block, dest);
 
@@ -267,7 +269,7 @@ void world_draw(World& world)
     }
 
     EndTextureMode();
-    BeginMode2D(world.camera);
+    BeginMode2D(*world.camera);
 
     Rectangle worldDest = {
         0,
