@@ -137,7 +137,7 @@ void world_generate(World& world)
             world_set_block(world, x, y, BLOCK_STONE);
 
             // coal
-            if (y >= WORLD_HEIGHT * 0.65f)
+            if (y >= WORLD_HEIGHT * 0.7f)
             {
                 if (GetRandomValue(1, 30) == 1)
                 {

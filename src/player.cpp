@@ -5,6 +5,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+const float slotSize = TILE_SIZE * 1.5f;
+
+////////////////////////////////////////////////////////////////////////////////
+
 Rectangle player_hitbox(Player& player)
 {
     const float scale = (TILE_SIZE / 8);
@@ -175,26 +179,28 @@ void player_update(Player& player, World& world, float dt)
     {
         player.coyoteTimer = player.coyoteBuffer;
     }
-
-    // inventory
-    if (!IsKeyDown(KEY_LEFT_CONTROL)) // stops conflict with cam zoom
-    {
-        player.inventory.selectedIdx -= (int)GetMouseWheelMove();
-        player.inventory.selectedIdx = Wrap(player.inventory.selectedIdx, 0, INVENTORY_SIZE);
-    }
-
-    // NOTE: if raylib changes enum values, im fucked
-    int key = GetKeyPressed();
-    if (key >= KEY_ZERO && key <= KEY_NINE)
-    {
-        // weird math so i can have 0 be 10
-        player.inventory.selectedIdx = Wrap((key + 1), 0, 10);
-    }
+    inventory_update(player.inventory, dt);
 
     // items
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+    if (!player.inventory.hovered && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {
-        ItemStack& slot = player.inventory.slots[player.inventory.selectedIdx];
+        ItemStack* slot = nullptr;
+        ItemStack& handSlot = player.inventory.handSlot;
+        ItemStack& selectedSlot = player.inventory.slots[player.inventory.selectedIdx];
+
+        if (player.inventory.open)
+        {
+            slot = &handSlot;
+        }
+        else
+        {
+            slot = &selectedSlot;
+        }
+
+        if (slot->item == ITEM_NONE || slot->count < 0)
+        {
+            return;
+        }
 
         Vector2 mousePos = GetMousePosition();
         mousePos = GetScreenToWorld2D(mousePos, world.camera);
@@ -205,19 +211,19 @@ void player_update(Player& player, World& world, float dt)
         {
             Block block = world.blocks[x][y];
 
-            switch (itemInfo[slot.item].type)
+            switch (itemInfo[slot->item].type)
             {
                 case ITEM_TYPE_BLOCK:
                 {
-                    if (player.placeTimer <= 0.0f && slot.count > 0 && block == BLOCK_AIR)
+                    if (player.placeTimer <= 0.0f && slot->count > 0 && block == BLOCK_AIR)
                     {
                         // TODO: weird block conversion that will bite me in my ass
-                        world_set_block(world, x, y, (Block)slot.item);
-                        slot.count--;
+                        world_set_block(world, x, y, (Block)slot->item);
+                        slot->count--;
 
-                        if (slot.count == 0)
+                        if (slot->count == 0)
                         {
-                            slot.item = ITEM_NONE;
+                            slot->item = ITEM_NONE;
                         }
 
                         player.placeTimer = player.placeSpeed;
@@ -269,6 +275,12 @@ void player_update(Player& player, World& world, float dt)
                         player.mineTimer = player.mineSpeed;
                     }
 
+                    break;
+                }
+
+                default:
+                {
+                    break;
                 }
             }
         }
@@ -307,6 +319,77 @@ void player_reset(Player& player)
         .count = 1,
     };
     inventory_add(player.inventory, pick);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void inventory_update(Inventory& inventory, float dt)
+{
+    if (!inventory.open)
+    {
+        if (!IsKeyDown(KEY_LEFT_CONTROL)) // stops conflict with cam zoom
+        {
+            inventory.selectedIdx -= (int)GetMouseWheelMove();
+            inventory.selectedIdx = Wrap(inventory.selectedIdx, 0, INVENTORY_WIDTH);
+        }
+
+        // NOTE: if raylib changes enum values, im fucked
+        int key = GetKeyPressed();
+        if (key >= KEY_ZERO && key <= KEY_NINE)
+        {
+            // weird math so i can have 0 be 10
+            inventory.selectedIdx = Wrap((key + 1), 0, 10);
+        }
+    }
+
+    if (IsKeyPressed(KEY_E))
+    {
+        inventory.open = !inventory.open;
+
+        if (inventory.handSlot.item != ITEM_NONE && inventory.handSlot.count > 0)
+        {
+            inventory_add(inventory, inventory.handSlot);
+            inventory.handSlot = {};
+        }
+    }
+
+    Vector2 mousePos = GetMousePosition();
+
+    Rectangle inventoryRect = {
+        10,
+        10,
+        INVENTORY_WIDTH * slotSize,
+        slotSize
+    };
+
+    if (inventory.open)
+    {
+        inventoryRect.height *= INVENTORY_HEIGHT;
+    }
+
+    if (CheckCollisionPointRec(mousePos, inventoryRect))
+    {
+        inventory.hovered = true;
+    }
+    else
+    {
+        inventory.hovered = false;
+    }
+
+    // item moving
+    if (inventory.open && inventory.hovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+    {
+        int x = (int)(mousePos.x / slotSize);
+        int y = (int)(mousePos.y / slotSize);
+
+        if (x < 0 || x >= INVENTORY_WIDTH || y < 0 || y >= INVENTORY_HEIGHT)
+        {
+            return;
+        }
+
+        int idx = y * INVENTORY_WIDTH + x;
+        std::swap(inventory.slots[idx], inventory.handSlot);
+    }
 }
 
 void inventory_add(Inventory& inventory, ItemStack& stack)
@@ -362,48 +445,86 @@ void inventory_add(Inventory& inventory, ItemStack& stack)
 
 void inventory_draw(Inventory& inventory)
 {
-    const float slotSize = TILE_SIZE * 1.5f;
+    int height = 1;
 
-    for (int i = 0; i < INVENTORY_SIZE; i++)
+    if (inventory.open)
     {
-        Rectangle slotRect = {
-            10 + (i * slotSize),
-            10,
-            slotSize,
-            slotSize
-        };
-        DrawRectangleRec(slotRect, Fade(BLACK, 0.5f));
+        height = INVENTORY_HEIGHT;
+    }
 
-        ItemStack slot = inventory.slots[i];
-        if (slot.item != ITEM_NONE)
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < INVENTORY_WIDTH; x++)
         {
-            Rectangle itemRect = {
-                slotRect.x + (slotSize / 4),
-                slotRect.y + (slotSize / 4),
-                (slotSize / 2),
-                (slotSize / 2)
+            Rectangle slotRect = {
+                10 + (x * slotSize),
+                10 + (y * slotSize),
+                slotSize,
+                slotSize
             };
-            item_draw(slot.item, itemRect);
-        }
+            DrawRectangleRec(slotRect, Fade(BLACK, 0.5f));
 
-        float lineThick = 2.0f;
-        if (i == inventory.selectedIdx)
-        {
-            lineThick = 6.0f;
-        }
-        DrawRectangleLinesEx(slotRect, lineThick, WHITE);
+            int idx = y * INVENTORY_WIDTH + x;
+            ItemStack slot = inventory.slots[idx];
 
-        if (slot.count <= 1)
+            Rectangle itemRect = {};
+            if (slot.item != ITEM_NONE)
+            {
+                itemRect = {
+                    slotRect.x + (slotSize / 4),
+                    slotRect.y + (slotSize / 4),
+                    (slotSize / 2),
+                    (slotSize / 2)
+                };
+                item_draw(slot.item, itemRect);
+            }
+
+            float lineThick = 2.0f;
+            if (!inventory.open && idx == inventory.selectedIdx)
+            {
+                lineThick = 6.0f;
+            }
+            DrawRectangleLinesEx(slotRect, lineThick, WHITE);
+
+            if (slot.count <= 1)
+            {
+                continue;
+            }
+
+            int fontSize = 18;
+            const char* text = TextFormat("%i", slot.count);
+            int textWidth = MeasureText(text, fontSize);
+
+            int textX = (itemRect.x + (itemRect.width / 2)) - (textWidth / 2);
+            int textY = (itemRect.y + itemRect.height) - (fontSize / 2);
+            DrawText(text, textX, textY, fontSize, WHITE);
+        }
+    }
+
+    // handslot
+    if (inventory.handSlot.item != ITEM_NONE)
+    {
+        Vector2 mousePos = GetMousePosition();
+
+        Rectangle itemRect = {
+            mousePos.x + (slotSize / 4),
+            mousePos.y + (slotSize / 4),
+            (slotSize / 2),
+            (slotSize / 2)
+        };
+        item_draw(inventory.handSlot.item, itemRect);
+
+        if (inventory.handSlot.count <= 1)
         {
-            continue;
+            return;
         }
 
         int fontSize = 18;
-        const char* text = TextFormat("%i", slot.count);
+        const char* text = TextFormat("%i", inventory.handSlot.count);
         int textWidth = MeasureText(text, fontSize);
 
-        int textX = (slotRect.x + (slotRect.width / 2)) - (textWidth / 2);
-        int textY = (slotRect.y + slotRect.height) - (fontSize);
+        int textX = (itemRect.x + (itemRect.width / 2)) - (textWidth / 2);
+        int textY = (itemRect.y + itemRect.height) - (fontSize / 2);
         DrawText(text, textX, textY, fontSize, WHITE);
     }
 }

@@ -7,12 +7,16 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define INVENTORY_SIZE 10
-#define MAX_STACK 999
+#define INVENTORY_WIDTH 10
+#define INVENTORY_HEIGHT 4
+#define INVENTORY_SIZE (INVENTORY_WIDTH * INVENTORY_HEIGHT)
 
 struct Inventory
 {
     ItemStack slots[INVENTORY_SIZE];
+    ItemStack handSlot;
+    bool open;
+    bool hovered;
     int selectedIdx;
 };
 
@@ -50,5 +54,6 @@ void player_update(Player& player, World& world, float dt);
 void player_draw(Player& player);
 void player_reset(Player& player);
 
+void inventory_update(Inventory& inventory, float dt);
 void inventory_add(Inventory& inventory, ItemStack& stack);
 void inventory_draw(Inventory& inventory);

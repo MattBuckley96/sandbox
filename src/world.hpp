@@ -54,6 +54,8 @@ enum Item
     ITEM_COUNT
 };
 
+#define MAX_STACK 999
+
 struct ItemStack
 {
     Item item;
