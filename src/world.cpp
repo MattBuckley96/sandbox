@@ -6,6 +6,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+extern Camera2D camera;
+
+////////////////////////////////////////////////////////////////////////////////
+
 void block_draw(Block block, Rectangle dest)
 {
     Rectangle source = {};
@@ -212,8 +216,8 @@ void world_draw(World& world)
     DrawRectangleGradientEx(skyRect, skyTop, skyBottom, skyBottom, skyTop);
 
     const Vector2 screenBounds = { SCREEN_WIDTH, SCREEN_HEIGHT };
-    Vector2 viewStart = GetScreenToWorld2D({ 0, 0 }, *world.camera);
-    Vector2 viewEnd = GetScreenToWorld2D(screenBounds, *world.camera);
+    Vector2 viewStart = GetScreenToWorld2D({ 0, 0 }, camera);
+    Vector2 viewEnd = GetScreenToWorld2D(screenBounds, camera);
 
     int xStart = std::max(0, (int)(viewStart.x / TILE_SIZE) - 1);
     int yStart = std::max(0, (int)(viewStart.y / TILE_SIZE) - 1);

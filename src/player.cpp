@@ -5,6 +5,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+extern Camera2D camera;
+
+////////////////////////////////////////////////////////////////////////////////
+
 const float slotSize = TILE_SIZE * 1.5f;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,7 +207,7 @@ void player_update(Player& player, World& world, float dt)
         }
 
         Vector2 mousePos = GetMousePosition();
-        mousePos = GetScreenToWorld2D(mousePos, *world.camera);
+        mousePos = GetScreenToWorld2D(mousePos, camera);
         int x = (int)(mousePos.x / TILE_SIZE);
         int y = (int)(mousePos.y / TILE_SIZE);
 

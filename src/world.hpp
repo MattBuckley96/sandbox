@@ -109,9 +109,6 @@ struct World
     // TODO: re-implement RenderTexture
     // RenderTexture blockMap;
     Vector2 spawn;
-
-    // TODO: move this
-    Camera2D* camera;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,4 +1,3 @@
-#include <memory>
 #include <cmath>
 
 #include "config.hpp"
@@ -14,50 +13,86 @@ Texture breakTexture;
 Texture treeTexture;
 Texture uiTexture;
 
-////////////////////////////////////////////////////////////////////////////////
-
-#define KiB(x) (x * 1024)
-#define MiB(x) (KiB(x) * 1024)
-#define GiB(x) (MiB(x) * 1024)
-
-struct Arena
-{
-    size_t size;
-    size_t capacity;
-    char* memory;
-};
+Arena arena;
+Player player;
+Camera2D camera;
+World* world;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void arena_init(Arena& arena, size_t capacity)
+void game_init()
 {
-    arena.size = 0;
-    arena.capacity = capacity;
+    player = {
+        .accel = 9.0f,
+        .friction = 10.0f,
+        .maxSpeed = 300.0f,
+        .gravity = 860.0f,
+        .jumpForce = 465.0f,
+        .jumpBuffer = 0.2f,
+        .coyoteBuffer = 0.1f,
+        .mineSpeed = 0.25f,
+        .placeSpeed = 0.25f,
+    };
 
-    arena.memory = (char*)malloc(capacity);
-    if (arena.memory)
+    camera = {
+        .offset = screenCenter,
+        .target = player.pos,
+        .zoom = 1.0f,
+    };
+
+    if (world == nullptr)
     {
-        memset(arena.memory, 0, capacity);
+        world = (World*)arena_alloc(arena, sizeof(World));
+        if (world == nullptr)
+        {
+            std::exit(-1);
+        }
+    }
+
+    world_generate(*world);
+
+    player.spawnPos = Vector2Scale(world->spawn, TILE_SIZE);
+    player_reset(player);
+}
+
+void game_update()
+{
+    if (IsKeyPressed(KEY_R))
+    {
+        game_init();
+    }
+
+    float dt = GetFrameTime();
+    dt = Clamp(dt, 0.0f, 0.1f);
+
+    player_update(player, *world, dt);
+
+    const float sensitivity = 0.2f;
+    camera.target.x = std::roundf(player.pos.x);
+    camera.target.y = std::roundf(player.pos.y);
+    if (IsKeyDown(KEY_LEFT_CONTROL))
+    {
+        camera.zoom += GetMouseWheelMove() * sensitivity;
+        camera.zoom = Clamp(camera.zoom, sensitivity, 1.0f);
     }
 }
 
-void arena_free(Arena& arena)
+void game_draw()
 {
-    free(arena.memory);
-}
+    BeginDrawing();
+    ClearBackground(BLACK);
 
-void* arena_alloc(Arena& arena, size_t size)
-{
-    void* ptr = nullptr;
+    BeginMode2D(camera);
 
-    size = (size + 7) & ~7;
-    if ((arena.size + size) <= arena.capacity)
-    {
-        ptr = arena.memory + arena.size;
-        arena.size += size;
-    }
+    world_draw(*world);
+    player_draw(player);
 
-    return ptr;
+    EndMode2D();
+
+    inventory_draw(player.inventory);
+    DrawText(TextFormat("FPS: %i", GetFPS()), 10, SCREEN_HEIGHT - 30, 20, WHITE);
+
+    EndDrawing();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,76 +109,13 @@ int main()
     treeTexture = LoadTexture("assets/tree.png");
     uiTexture = LoadTexture("assets/ui.png");
 
-    Arena arena = {};
     arena_init(arena, sizeof(World));
-
-    Player player = {
-        .accel = 9.0f,
-        .friction = 10.0f,
-        .maxSpeed = 300.0f,
-        .gravity = 860.0f,
-        .jumpForce = 465.0f,
-        .jumpBuffer = 0.2f,
-        .coyoteBuffer = 0.1f,
-        .mineSpeed = 0.25f,
-        .placeSpeed = 0.25f,
-    };
-
-    Camera2D camera = {
-        .offset = screenCenter,
-        .target = player.pos,
-        .zoom = 1.0f,
-    };
-
-    World* world = (World*)arena_alloc(arena, sizeof(World));
-    if (world == nullptr)
-    {
-        return -1;
-    }
-
-    world->camera = &camera;
-    world_generate(*world);
-
-    player.spawnPos = Vector2Scale(world->spawn, TILE_SIZE);
-    player_reset(player);
+    game_init();
 
     while (!WindowShouldClose())
     {
-        float dt = GetFrameTime();
-        dt = Clamp(dt, 0.0f, 0.1f);
-        player_update(player, *world, dt);
-
-        const float sensitivity = 0.2f;
-        camera.target.x = std::roundf(player.pos.x);
-        camera.target.y = std::roundf(player.pos.y);
-        if (IsKeyDown(KEY_LEFT_CONTROL))
-        {
-            camera.zoom += GetMouseWheelMove() * sensitivity;
-            camera.zoom = Clamp(camera.zoom, sensitivity, 1.0f);
-        }
-
-        if (IsKeyPressed(KEY_R))
-        {
-            world_generate(*world);
-
-            player.spawnPos = Vector2Scale(world->spawn, TILE_SIZE);
-            player_reset(player);
-        }
-
-        BeginDrawing();
-        ClearBackground(BLACK);
-
-        BeginMode2D(camera);
-
-        world_draw(*world);
-        player_draw(player);
-
-        EndMode2D();
-
-        inventory_draw(player.inventory);
-        DrawText(TextFormat("FPS: %i", GetFPS()), 10, SCREEN_HEIGHT - 30, 20, WHITE);
-
-        EndDrawing();
+        game_update();
+        game_draw();
     }
 
     arena_free(arena);
