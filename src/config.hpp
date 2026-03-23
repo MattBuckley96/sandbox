@@ -19,5 +19,6 @@ const Vector2 screenCenter = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 extern Texture blockAtlas; 
 extern Texture itemAtlas;
 extern Texture playerTexture; 
-extern Texture blockBreakTexture; 
+extern Texture breakTexture; 
 extern Texture treeTexture;
+extern Texture uiTexture;

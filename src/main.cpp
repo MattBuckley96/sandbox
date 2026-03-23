@@ -10,8 +10,9 @@
 Texture blockAtlas; 
 Texture itemAtlas;
 Texture playerTexture; 
-Texture blockBreakTexture; 
+Texture breakTexture; 
 Texture treeTexture;
+Texture uiTexture;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -66,11 +67,12 @@ int main()
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "sandbox");
 
-    blockAtlas = LoadTexture("assets/block_atlas.png");
-    itemAtlas = LoadTexture("assets/item_atlas.png");
+    blockAtlas = LoadTexture("assets/blocks.png");
+    itemAtlas = LoadTexture("assets/items.png");
     playerTexture = LoadTexture("assets/player.png");
-    blockBreakTexture = LoadTexture("assets/block_break.png");
+    breakTexture = LoadTexture("assets/break.png");
     treeTexture = LoadTexture("assets/tree.png");
+    uiTexture = LoadTexture("assets/ui.png");
 
     Arena arena = {};
     arena_init(arena, sizeof(World));

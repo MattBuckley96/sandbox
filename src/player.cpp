@@ -445,6 +445,8 @@ void inventory_add(Inventory& inventory, ItemStack& stack)
 
 void inventory_draw(Inventory& inventory)
 {
+    // TODO: draw padding between slots
+
     int height = 1;
 
     if (inventory.open)
@@ -456,13 +458,14 @@ void inventory_draw(Inventory& inventory)
     {
         for (int x = 0; x < INVENTORY_WIDTH; x++)
         {
+            const Rectangle slotSrc = { 0, 0, 16, 16 };
             Rectangle slotRect = {
                 10 + (x * slotSize),
                 10 + (y * slotSize),
                 slotSize,
                 slotSize
             };
-            DrawRectangleRec(slotRect, Fade(BLACK, 0.5f));
+            DrawTexturePro(uiTexture, slotSrc, slotRect, { 0, 0 }, 0.0f, WHITE);
 
             int idx = y * INVENTORY_WIDTH + x;
             ItemStack slot = inventory.slots[idx];
@@ -479,12 +482,11 @@ void inventory_draw(Inventory& inventory)
                 item_draw(slot.item, itemRect);
             }
 
-            float lineThick = 2.0f;
             if (!inventory.open && idx == inventory.selectedIdx)
             {
-                lineThick = 6.0f;
+                const Rectangle hoverSrc = { 16, 0, 16, 16 };
+                DrawTexturePro(uiTexture, hoverSrc, slotRect, { 0, 0 }, 0.0f, WHITE);
             }
-            DrawRectangleLinesEx(slotRect, lineThick, WHITE);
 
             if (slot.count <= 1)
             {

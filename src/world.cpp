@@ -260,7 +260,7 @@ void world_draw(World& world)
                 const int frameCount = 3;
                 int frame = ((float)(maxHealth - health) / maxHealth) * frameCount;
                 Rectangle source = { (float)frame * 8, 0, 8, 8 };
-                DrawTexturePro(blockBreakTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
+                DrawTexturePro(breakTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
             }
         }
     }
