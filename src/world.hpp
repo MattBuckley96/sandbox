@@ -106,7 +106,8 @@ struct World
     Block blocks[WORLD_WIDTH][WORLD_HEIGHT];
     int blockHealth[WORLD_WIDTH][WORLD_HEIGHT];
 
-    RenderTexture blockMap;
+    // TODO: re-implement RenderTexture
+    // RenderTexture blockMap;
     Vector2 spawn;
 
     // TODO: move this

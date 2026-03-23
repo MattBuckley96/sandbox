@@ -12,8 +12,8 @@
 const Vector2 screenCenter = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 
 #define TILE_SIZE 32
-#define WORLD_WIDTH 200
-#define WORLD_HEIGHT 100
+#define WORLD_WIDTH 800
+#define WORLD_HEIGHT 400
 
 // TODO: move these
 extern Texture blockAtlas; 

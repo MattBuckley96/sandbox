@@ -138,7 +138,7 @@ void world_generate(World& world)
             world_set_block(world, x, y, BLOCK_STONE);
 
             // coal
-            if (y >= WORLD_HEIGHT * 0.7f)
+            if (y >= (height + (dirtHeight * 2)))
             {
                 if (GetRandomValue(1, 30) == 1)
                 {
@@ -193,9 +193,6 @@ void world_draw(World& world)
     /*
         TODO: redraw the world only on update 
     */
-
-    EndMode2D();
-    BeginTextureMode(world.blockMap);
 
     const Rectangle skyRect = {
         0,
@@ -268,14 +265,15 @@ void world_draw(World& world)
         }
     }
 
+    // TODO: re-implement RenderTexture
+    /*
     EndTextureMode();
-    BeginMode2D(*world.camera);
 
     Rectangle worldDest = {
         0,
         0,
-        WORLD_WIDTH * TILE_SIZE,
-        WORLD_HEIGHT * TILE_SIZE
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT 
     };
 
     Rectangle blockSource = {
@@ -287,4 +285,7 @@ void world_draw(World& world)
 
     DrawTexturePro(world.blockMap.texture, blockSource, worldDest, 
         { 0, 0 }, 0.0f, WHITE);
+
+    BeginMode2D(*world.camera);
+    */
 }

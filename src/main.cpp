@@ -1,4 +1,5 @@
 #include <memory>
+#include <cmath>
 
 #include "config.hpp"
 #include "world.hpp"
@@ -99,15 +100,6 @@ int main()
     }
 
     world->camera = &camera;
-
-    /*
-        TODO: make this smaller somehow idk
-        world is too big, texture no load
-    */
-    world->blockMap = LoadRenderTexture(
-        WORLD_WIDTH * TILE_SIZE,
-        WORLD_HEIGHT * TILE_SIZE
-    );
     world_generate(*world);
 
     player.spawnPos = Vector2Scale(world->spawn, TILE_SIZE);
@@ -119,8 +111,9 @@ int main()
         dt = Clamp(dt, 0.0f, 0.1f);
         player_update(player, *world, dt);
 
-        const float sensitivity = 0.05f;
-        camera.target = player.pos;
+        const float sensitivity = 0.2f;
+        camera.target.x = std::roundf(player.pos.x);
+        camera.target.y = std::roundf(player.pos.y);
         if (IsKeyDown(KEY_LEFT_CONTROL))
         {
             camera.zoom += GetMouseWheelMove() * sensitivity;
